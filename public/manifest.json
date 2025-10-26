@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Extension Starter Kit",
+  "name": "Prompt History Recall - プロンプト履歴呼び戻し",
   "version": "0.1.0",
-  "description": "",
+  "description": "AIチャット内で過去のプロンプトを上矢印キーなどで呼び戻せます",
   "icons": {
     "48": "icons/icon.png"
   },
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html"
   },
