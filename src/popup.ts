@@ -4,17 +4,20 @@ import { PopupPanel } from './components/popup-panel';
 import { dateTime } from './utils/date';
 import { clickURL } from './utils/dom';
 import { getSiteAccessText } from './utils/permissions';
+import meta from '../public/manifest.meta.json';
 
 class PopupManager {
   private panel: PopupPanel;
   private enabled: boolean = false;
   private enabledElement: HTMLInputElement | null;
   private manifestData: chrome.runtime.Manifest;
+  private manifestMetadata: { [key: string]: any } = (meta as any) || {};
 
   constructor() {
     this.panel = new PopupPanel();
     this.enabledElement = document.getElementById('enabled') as HTMLInputElement;
     this.manifestData = chrome.runtime.getManifest();
+    this.manifestMetadata = (meta as any) || {};
 
     this.loadInitialState();
     this.addEventListeners();
@@ -26,7 +29,7 @@ class PopupManager {
         this.enabled = data.enabled || false;
         this.enabledElement.checked = this.enabled;
       }
-      this.showMessage(`${this.manifestData.name} が起動しました`);
+      this.showMessage(`${this.manifestData.short_name} が起動しました`);
 
       // 設定値の読み込み例
       // const settings = data.settings || {};
@@ -42,7 +45,7 @@ class PopupManager {
       this.enabledElement.addEventListener('change', (event) => {
         this.enabled = (event.target as HTMLInputElement).checked;
         chrome.storage.local.set({ enabled: this.enabled }, () => {
-          this.showMessage(this.enabled ? `${this.manifestData.name} は有効になっています` : `${this.manifestData.name} は無効になっています`);
+          this.showMessage(this.enabled ? `${this.manifestData.short_name} は有効になっています` : `${this.manifestData.short_name} は無効になっています`);
         });
       });
     }
@@ -83,17 +86,18 @@ class PopupManager {
   }
 
   private initializeUI(): void {
+    const short_name = this.manifestData.short_name || this.manifestData.name;
     const title = document.getElementById('title');
     if (title) {
-      title.textContent = this.manifestData.name;
+      title.textContent = short_name;
     }
     const titleHeader = document.getElementById('title-header');
     if (titleHeader) {
-      titleHeader.textContent = this.manifestData.name;
+      titleHeader.textContent = short_name;
     }
     const enabledLabel = document.getElementById('enabled-label');
     if (enabledLabel) {
-      enabledLabel.textContent = `${this.manifestData.name} を有効にする`;
+      enabledLabel.textContent = `${short_name} を有効にする`;
     }
 
     const newTabButton = document.getElementById('new-tab-button');
@@ -154,6 +158,23 @@ class PopupManager {
         incognitoEnabled.textContent = isAllowedAccess ? '有効' : '無効';
       }
     });
+
+    const languageMap: { [key: string]: string } = { 'en': '英語', 'ja': '日本語' };
+    const language = document.getElementById('language') as HTMLElement;
+    const languages = this.manifestMetadata.languages;
+    language.textContent = languages.map((lang: string) => languageMap[lang]).join(', ');
+
+    const publisherName = document.getElementById('publisher-name') as HTMLElement;
+    const publisher = this.manifestMetadata.publisher || '不明';
+    publisherName.textContent = publisher;
+
+    const developerName = document.getElementById('developer-name') as HTMLElement;
+    const developer = this.manifestMetadata.developer || '不明';
+    developerName.textContent = developer;
+
+    const githubLink = document.getElementById('github-link') as HTMLAnchorElement;
+    githubLink.href = this.manifestMetadata.github_url;
+    githubLink.textContent = this.manifestMetadata.github_url;
   }
 
   /**
