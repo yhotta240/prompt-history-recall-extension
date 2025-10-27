@@ -6,6 +6,7 @@ import { ChatGPTAdapter } from './content/siteAdapters/chatgpt';
 import { ClaudeAdapter } from './content/siteAdapters/claude';
 import { PerplexityAdapter } from './content/siteAdapters/perplexity';
 import { CopilotAdapter } from './content/siteAdapters/copilot';
+import { GrokAdapter } from './content/siteAdapters/grok';
 
 class ContentScript {
   private adapter: ISiteAdapter | null = null;
@@ -91,6 +92,10 @@ class ContentScript {
 
     if (hostname.includes('copilot.microsoft.com')) {
       return new CopilotAdapter();
+    }
+
+    if (hostname.includes('x.com') && window.location.pathname.includes('/grok')) {
+      return new GrokAdapter();
     }
 
     // 他のサイトのアダプターは今後追加
