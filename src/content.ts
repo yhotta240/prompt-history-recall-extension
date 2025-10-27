@@ -7,6 +7,7 @@ import { ClaudeAdapter } from './content/siteAdapters/claude';
 import { PerplexityAdapter } from './content/siteAdapters/perplexity';
 import { CopilotAdapter } from './content/siteAdapters/copilot';
 import { GrokAdapter } from './content/siteAdapters/grok';
+import { NotionAIAdapter } from './content/siteAdapters/notionai';
 
 class ContentScript {
   private adapter: ISiteAdapter | null = null;
@@ -96,6 +97,10 @@ class ContentScript {
 
     if (hostname.includes('x.com') && window.location.pathname.includes('/grok')) {
       return new GrokAdapter();
+    }
+
+    if (hostname.includes('notion.so') && (window.location.pathname.includes('/chat') || window.location.pathname.includes('/ai'))) {
+      return new NotionAIAdapter();
     }
 
     // 他のサイトのアダプターは今後追加
