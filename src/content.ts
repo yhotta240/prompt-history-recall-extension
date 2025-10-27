@@ -84,6 +84,10 @@ class ContentScript {
       return new ClaudeAdapter();
     }
 
+    if (hostname.includes('perplexity.ai')) {
+      return new PerplexityAdapter();
+    }
+
     // 他のサイトのアダプターは今後追加
     return null;
   }
