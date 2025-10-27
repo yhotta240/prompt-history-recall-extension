@@ -5,6 +5,7 @@ import { KeyHandler } from './content/keyHandler';
 import { ChatGPTAdapter } from './content/siteAdapters/chatgpt';
 import { ClaudeAdapter } from './content/siteAdapters/claude';
 import { PerplexityAdapter } from './content/siteAdapters/perplexity';
+import { CopilotAdapter } from './content/siteAdapters/copilot';
 
 class ContentScript {
   private adapter: ISiteAdapter | null = null;
@@ -86,6 +87,10 @@ class ContentScript {
 
     if (hostname.includes('perplexity.ai')) {
       return new PerplexityAdapter();
+    }
+
+    if (hostname.includes('copilot.microsoft.com')) {
+      return new CopilotAdapter();
     }
 
     // 他のサイトのアダプターは今後追加
