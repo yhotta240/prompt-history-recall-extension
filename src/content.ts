@@ -3,6 +3,8 @@ import { HistoryManager } from './storage/historyManager';
 import { InputDetector } from './content/inputDetector';
 import { KeyHandler } from './content/keyHandler';
 import { ChatGPTAdapter } from './content/siteAdapters/chatgpt';
+import { ClaudeAdapter } from './content/siteAdapters/claude';
+import { PerplexityAdapter } from './content/siteAdapters/perplexity';
 
 class ContentScript {
   private adapter: ISiteAdapter | null = null;
@@ -76,6 +78,10 @@ class ContentScript {
 
     if (hostname.includes('openai.com') || hostname.includes('chatgpt.com')) {
       return new ChatGPTAdapter();
+    }
+
+    if (hostname.includes('claude.ai')) {
+      return new ClaudeAdapter();
     }
 
     // 他のサイトのアダプターは今後追加
