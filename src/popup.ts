@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import { PopupPanel } from './components/popup-panel';
 import { dateTime } from './utils/date';
 import { clickURL } from './utils/dom';
@@ -55,6 +56,18 @@ class PopupManager {
   }
 
   private setupSettingsListeners(): void {
+    // ショートカット設定を開くボタン
+    const openShortcutsButton = document.getElementById('open-shortcuts-button');
+    if (openShortcutsButton) {
+      openShortcutsButton.addEventListener('click', () => {
+        chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+        this.showMessage('ショートカット設定ページを開きました');
+      });
+    }
+
+    // ショートカット状態を表示
+    this.updateShortcutStatus();
+
     // 設定項目のイベントリスナー例
     //
     // セレクトボックスの例:
@@ -197,6 +210,49 @@ class PopupManager {
 
   private showMessage(message: string, timestamp: string = dateTime()) {
     this.panel.messageOutput(message, timestamp);
+  }
+
+  private async updateShortcutStatus(): Promise<void> {
+    const statusElement = document.getElementById('shortcut-status');
+    if (!statusElement) return;
+
+    try {
+      const commands = await chrome.commands.getAll();
+      const upCommand = commands.find(cmd => cmd.name === 'navigate-history-up');
+      const downCommand = commands.find(cmd => cmd.name === 'navigate-history-down');
+
+      const upKey = upCommand?.shortcut || 'Alt+Up';
+      const downKey = downCommand?.shortcut || 'Alt+Down';
+
+      const hasCustomUp = upCommand?.shortcut && upCommand.shortcut !== '';
+      const hasCustomDown = downCommand?.shortcut && downCommand.shortcut !== '';
+
+      if (hasCustomUp || hasCustomDown) {
+        const statusParts = [];
+        if (hasCustomUp) {
+          statusParts.push(`上: <kbd>${upKey}</kbd> (カスタム)`);
+        } else {
+          statusParts.push(`上: <kbd>Alt+Up</kbd> (デフォルト)`);
+        }
+        if (hasCustomDown) {
+          statusParts.push(`下: <kbd>${downKey}</kbd> (カスタム)`);
+        } else {
+          statusParts.push(`下: <kbd>Alt+Down</kbd> (デフォルト)`);
+        }
+
+        statusElement.innerHTML = `
+          <strong>現在:</strong> ${statusParts.join(' / ')}<br>
+          <span class="text-info">✓ カスタムキーが一部設定されています</span>
+        `;
+      } else {
+        statusElement.innerHTML = `
+          <strong>現在:</strong> <kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>Alt</kbd> + <kbd>↓</kbd><br>
+          <span class="text-success">✓ デフォルトキーが使用可能です</span>
+        `;
+      }
+    } catch (error) {
+      console.error('Failed to get commands:', error);
+    }
   }
 }
 

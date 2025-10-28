@@ -61,14 +61,29 @@
     <!-- 設定 -->
     <div class="tab-pane fade mt-3 mx-2 show active" id="settings" role="tabpanel" style="margin-bottom: 180px;"
       aria-labelledby="settings-tab">
-      <h5 class="">設定</h5>
-      <p class="text-muted small">ここに拡張機能の設定項目を追加してください</p>
-
       <!-- =========================
         設定項目のテンプレート
         ※ 以下のコメントアウトされた例を参考に，実際の設定項目を追加してください
       ========================== -->
       <ul class="list-group list-group-flush">
+        <!-- ショートカット設定 -->
+        <li class="list-group-item p-1">
+          <div class="mb-3">
+            <label class="form-label d-flex">キーボードショートカット：</label>
+            <p class="text-muted small mb-2" id="shortcut-status">
+              <strong>現在:</strong> <kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>Alt</kbd> + <kbd>↓</kbd><br>
+              <span class="text-success">✓ デフォルトキーが使用可能です</span>
+            </p>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="open-shortcuts-button">
+              <i class="bi bi-keyboard" style="width: 100px;"></i>
+              カスタムショートカットを設定
+            </button>
+            <p class="text-muted small mt-2 mb-0">
+              ※ カスタムキーを設定すると，デフォルトキーは自動的に無効化されます．
+            </p>
+          </div>
+        </li>
+
         <!-- 
         ========== 設定項目の例 ==========
 
