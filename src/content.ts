@@ -13,7 +13,7 @@ class ContentScript {
   private adapter: ISiteAdapter | null = null;
   private historyManager: HistoryManager | null = null;
   private inputDetector: InputDetector;
-  private keyHandler: KeyHandler | null = null;
+  public keyHandler: KeyHandler | null = null;
   private lastUrl: string = '';
 
   constructor() {
@@ -116,3 +116,17 @@ class ContentScript {
 // 初期化
 const contentScript = new ContentScript();
 contentScript.initialize();
+
+// Background scriptからのメッセージを受信
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'COMMAND') {
+    if (!contentScript.keyHandler) return;
+
+    // コマンドに応じた処理を実行
+    if (message.command === 'navigate-history-up') {
+      contentScript.keyHandler.navigateUp();
+    } else if (message.command === 'navigate-history-down') {
+      contentScript.keyHandler.navigateDown();
+    }
+  }
+});

@@ -20,5 +20,19 @@
       "matches": ["https://*/*", "http://*/*"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "commands": {
+    "navigate-history-up": {
+      "suggested_key": {
+        "default": "Alt+Up"
+      },
+      "description": "過去のプロンプトを表示（デフォルト: Alt+Up）"
+    },
+    "navigate-history-down": {
+      "suggested_key": {
+        "default": "Alt+Down"
+      },
+      "description": "新しいプロンプトへ戻る（デフォルト: Alt+Down）"
+    }
+  }
 }
