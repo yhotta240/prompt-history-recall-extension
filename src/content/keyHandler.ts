@@ -24,12 +24,12 @@ export class KeyHandler {
     input.addEventListener('keydown', (e: Event) => {
       const keyEvent = e as KeyboardEvent;
 
-      // 上矢印キー
-      if (keyEvent.key === 'ArrowUp') {
+      // Alt+上矢印キー
+      if (keyEvent.key === 'ArrowUp' && keyEvent.altKey) {
         this.handleArrowUp(keyEvent);
       }
-      // 下矢印キー
-      else if (keyEvent.key === 'ArrowDown') {
+      // Alt+下矢印キー
+      else if (keyEvent.key === 'ArrowDown' && keyEvent.altKey) {
         this.handleArrowDown(keyEvent);
       }
       // その他のキーが押されたらナビゲーション終了
