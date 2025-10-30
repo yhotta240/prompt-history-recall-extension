@@ -32,10 +32,16 @@ class PopupManager {
         this.enabledElement.checked = this.enabled;
       }
 
-      // 設定値を読み込み、サイトトグルを初期化
+      // 設定値を読み込み，サイトトグルを初期化
       const settings: Settings = data.settings || DEFAULT_SETTINGS;
       if (!settings.enabledSites) {
         settings.enabledSites = DEFAULT_SETTINGS.enabledSites;
+      }
+
+      // トースト通知トグルを初期化
+      const toastToggle = document.getElementById('toggle-toast-notification') as HTMLInputElement;
+      if (toastToggle) {
+        toastToggle.checked = settings.showToastNotification !== false;
       }
 
       // サイトトグルUIを作成
@@ -71,6 +77,33 @@ class PopupManager {
 
     // ショートカット状態を表示
     this.updateShortcutStatus();
+
+    // トースト通知トグル
+    const toastToggle = document.getElementById('toggle-toast-notification') as HTMLInputElement;
+    if (toastToggle) {
+      toastToggle.addEventListener('change', (event) => {
+        const checked = (event.target as HTMLInputElement).checked;
+        chrome.storage.local.get(['settings'], (data) => {
+          const settings: Settings = data.settings || DEFAULT_SETTINGS;
+          settings.showToastNotification = checked;
+          chrome.storage.local.set({ settings }, () => {
+            this.showMessage(`トースト通知を${checked ? '有効' : '無効'}にしました`);
+            
+            // 全てのタブのContent Scriptに変更を通知
+            chrome.tabs.query({}, (tabs) => {
+              tabs.forEach(tab => {
+                if (tab.id) {
+                  chrome.tabs.sendMessage(tab.id, {
+                    type: 'SETTINGS_UPDATED',
+                    settings
+                  }).catch(() => {});
+                }
+              });
+            });
+          });
+        });
+      });
+    }
 
     // 設定項目のイベントリスナー例
     //

@@ -1,5 +1,6 @@
 import { ISiteAdapter } from '../types';
 import { HistoryManager } from '../storage/historyManager';
+import { Toast } from './toast';
 
 export class KeyHandler {
   private currentIndex: number = -1;
@@ -8,16 +9,32 @@ export class KeyHandler {
   private isNavigating: boolean = false;
   private useDefaultUpKey: boolean = true; // デフォルトの上キーを使用するか
   private useDefaultDownKey: boolean = true; // デフォルトの下キーを使用するか
+  private toast: Toast;
+  private showToastNotification: boolean = true;
 
   constructor(
     private adapter: ISiteAdapter,
     private historyManager: HistoryManager
-  ) { }
+  ) {
+    this.toast = new Toast();
+  }
 
   async initialize(): Promise<void> {
     this.history = this.historyManager.getHistory();
     await this.checkCommandsConfig();
+    await this.loadSettings();
     this.setupKeyListener();
+  }
+
+  private async loadSettings(): Promise<void> {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['settings'], (data) => {
+        if (data.settings) {
+          this.showToastNotification = data.settings.showToastNotification !== false;
+        }
+        resolve();
+      });
+    });
   }
 
   // Commands APIでキーが設定されているかチェック（backgroundに問い合わせ）
@@ -84,6 +101,7 @@ export class KeyHandler {
     if (this.currentIndex > 0) {
       this.currentIndex--;
       this.adapter.setInputValue(this.history[this.currentIndex]);
+      this.showNavigationToast();
     }
   }
 
@@ -98,11 +116,13 @@ export class KeyHandler {
     if (this.currentIndex < this.history.length - 1) {
       this.currentIndex++;
       this.adapter.setInputValue(this.history[this.currentIndex]);
+      this.showNavigationToast();
     } else {
       // 最新まで来たら元の入力に戻る
       this.currentIndex = this.history.length;
       this.adapter.setInputValue(this.originalInput);
       this.isNavigating = false;
+      this.toast.hide();
     }
   }
 
@@ -110,6 +130,24 @@ export class KeyHandler {
     this.isNavigating = false;
     this.currentIndex = -1;
     this.originalInput = '';
+    this.toast.hide();
+  }
+
+  private showNavigationToast(): void {
+    if (!this.showToastNotification) return;
+    
+    const position = this.currentIndex + 1;
+    const total = this.history.length;
+    this.toast.show(`${position}/${total}`);
+  }
+
+  updateSettings(settings: any): void {
+    if (settings.showToastNotification !== undefined) {
+      this.showToastNotification = settings.showToastNotification;
+      if (!this.showToastNotification) {
+        this.toast.hide();
+      }
+    }
   }
 
   // Commands APIから呼び出すための公開メソッド
@@ -125,5 +163,6 @@ export class KeyHandler {
 
   cleanup(): void {
     this.resetNavigation();
+    this.toast.cleanup();
   }
 }

@@ -29,7 +29,7 @@ class ContentScript {
 
     const domain = this.getCurrentDomain();
 
-    // サイトが無効化されている場合は、既存の機能をクリーンアップして終了
+    // サイトが無効化されている場合は，既存の機能をクリーンアップして終了
     if (!this.isSiteEnabled(domain)) {
       // console.log('[Prompt History Recall] Site is disabled:', domain);
       this.cleanup();
@@ -173,8 +173,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       contentScript.keyHandler.navigateDown();
     }
   } else if (message.type === 'SETTINGS_UPDATED') {
-    // 設定が更新されたら、クリーンアップして再初期化
-    // console.log('[Prompt History Recall] Settings updated, reinitializing...');
+    // 設定が更新されたら，KeyHandlerの設定を更新
+    if (contentScript.keyHandler && message.settings) {
+      contentScript.keyHandler.updateSettings(message.settings);
+    }
+    // サイトの有効/無効が変わった場合は再初期化
     contentScript.cleanup();
     setTimeout(() => contentScript.initialize(), 100);
   }

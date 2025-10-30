@@ -6,6 +6,7 @@ export interface Settings {
   enabledSites?: {
     [domain: string]: boolean;
   };
+  showToastNotification?: boolean;
 }
 
 /** 対応サイトのリスト */
@@ -33,4 +34,5 @@ export const DEFAULT_SETTINGS: Settings = {
     acc[site.domain] = true;
     return acc;
   }, {} as { [domain: string]: boolean }),
+  showToastNotification: true,
 };
