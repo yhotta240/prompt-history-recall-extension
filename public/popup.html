@@ -113,63 +113,6 @@
           </div>
         </li>
 
-        <!-- 
-        ========== 設定項目の例 ==========
-
-        ▼ セレクトボックス（ドロップダウン）の例:
-        <li class="list-group-item">
-          <div class="mb-3">
-            <label for="theme-select" class="form-label d-flex">テーマ：</label>
-            <select class="form-select" id="theme-select">
-              <option value="light">ライト</option>
-              <option value="dark">ダーク</option>
-              <option value="system">システム</option>
-            </select>
-          </div>
-        </li>
-
-        ▼ スライダー（範囲入力）の例:
-        <li class="list-group-item">
-          <div class="mb-3">
-            <label for="font-size" class="form-label d-flex">フォントサイズ：</label>
-            <input type="range" class="form-range" id="font-size" min="12" max="24" value="16">
-            <small class="text-muted">12〜24の範囲で調整可能</small>
-          </div>
-        </li>
-
-        ▼ チェックボックスの例:
-        <li class="list-group-item">
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="enable-notifications">
-            <label class="form-check-label" for="enable-notifications">
-              通知を受け取る
-            </label>
-          </div>
-        </li>
-
-        ▼ テキスト入力の例:
-        <li class="list-group-item">
-          <div class="mb-3">
-            <label for="api-key" class="form-label d-flex">APIキー：</label>
-            <input type="text" class="form-control" id="api-key" placeholder="APIキーを入力">
-          </div>
-        </li>
-
-        ▼ ラジオボタンの例:
-        <li class="list-group-item">
-          <div class="mb-3">
-            <label class="form-label d-flex">表示モード：</label>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="display-mode" id="mode-compact" value="compact">
-              <label class="form-check-label" for="mode-compact">コンパクト</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="display-mode" id="mode-standard" value="standard" checked>
-              <label class="form-check-label" for="mode-standard">標準</label>
-            </div>
-          </div>
-        </li>
-        -->
       </ul>
     </div>
 
@@ -180,12 +123,21 @@
         <h5>概要</h5>
         <p class="my-1 fw-bold">説明:</p>
         <p>
-          このChrome拡張機能を使えば，○○できます．
+          ターミナルのように，AIチャット画面で過去に送信したプロンプトをキーボードショートカットで呼び戻せます．
         </p>
         <p class="my-1 fw-bold">拡張機能の主な特徴:</p>
-        <p class="mt-1">機能の説明を書く</p>
+        <ul class="mt-1">
+          <li>Alt+↑/↓ で履歴をナビゲーション</li>
+          <li>カスタマイズ可能なショートカットキー</li>
+          <li>トースト通知で現在位置を表示</li>
+          <li>サイトごとに機能のON/OFF設定可能</li>
+          <li>DOM履歴参照でプライバシー保護</li>
+        </ul>
         <p class="my-1 fw-bold">注意点:</p>
-        <p class="mt-1">注意点を書く</p>
+        <ul class="mt-1">
+          <li>ページをリロードするとナビゲーション状態がリセットされます</li>
+          <li>履歴はページ上に表示されているプロンプトのみ取得できます</li>
+        </ul>
       </div>
     </div>
 
@@ -205,23 +157,33 @@
             <div class="accordion-body p-3">
               <p class="my-1 fw-bold">説明:</p>
               <p>
-                このChrome拡張機能を使えば，○○できます．
+                Prompt History Recallは，AIチャット画面（ChatGPT，Claude，Perplexityなど）で過去のプロンプトをキーボードショートカットで呼び戻せるChrome拡張機能です．
               </p>
-              <p class="my-1 fw-bold">拡張機能の主な特徴:</p>
+              <p class="">特徴：</p>
+              <ul>
+                <li>Alt+↑/↓ で履歴をナビゲーション</li>
+                <li>カスタマイズ可能なショートカットキー</li>
+                <li>トースト通知で現在位置を表示</li>
+                <li>サイトごとに機能のON/OFF設定可能</li>
+              </ul>
+              <p class="my-1 fw-bold">対応サイト:</p>
               <div class="mt-1">
-                <ol>
-                  <li class="mb-2">
-                    特徴をここに書く
-                  </li>
-                </ol>
+                <ul>
+                  <li>ChatGPT (chat.openai.com, chatgpt.com)</li>
+                  <li>Claude (claude.ai)</li>
+                  <li>Perplexity (perplexity.ai)</li>
+                  <li>Microsoft Copilot (copilot.microsoft.com)</li>
+                  <li>Grok (x.com/i/grok)</li>
+                  <li>Notion AI (notion.so)</li>
+                </ul>
               </div>
               <p class="my-1 fw-bold">注意点:</p>
               <div class="mt-1">
-                <ol>
+                <ul>
                   <li class="mb-2">
-                    注意点を書く
+                    各サイトの DOM 構造変更により動作しなくなる可能性があります
                   </li>
-                </ol>
+                </ul>
               </div>
             </div>
           </div>
@@ -238,40 +200,31 @@
           <div id="doc-tutorial" class="accordion-collapse collapse" data-bs-parent="#accordion">
             <div class="accordion-body p-3">
               <p class="mb-1 fw-bold">
-                拡張機能を有効にする
+                基本的な使い方
               </p>
               <ol>
-                <li>PCで Chrome を開きます．</li>
-                <li>右上の [拡張機能]
-                  <img src="https://storage.googleapis.com/support-kms-prod/pPIeCzvFrMFIBxrrrWuHfxU58Rx9xBLyyv7F"
-                    alt="拡張機能" height="18"> を選択します．
-                </li>
-                <li>「Sample - サンプル」を選択します．（固定を指定しておくと，常に表示されます）</li>
+                <li class="mb-2">対応するAIチャットサイト（ChatGPT，Claudeなど）を開きます</li>
+                <li class="mb-2">プロンプト入力フィールドにフォーカスを当てます</li>
+                <li class="mb-2"><kbd>Alt</kbd> + <kbd>↑</kbd> を押すと過去のプロンプトが呼び出されます</li>
+                <li class="mb-2"><kbd>Alt</kbd> + <kbd>↓</kbd> で新しいプロンプトへ移動します</li>
+                <li class="mb-2">トースト通知で現在位置（例: 3/10）が表示されます</li>
               </ol>
 
               <p class="mb-1 fw-bold">
-                Sampleを有効にする
+                ショートカットキーのカスタマイズ
               </p>
-              <ul class="m-1">
-                <li>拡張機能のポップアップを開き，「Sampleを有効にする」のトグルボタンをクリック
-                  <div>無効にする場合も同じ操作を行ってください．</div>
-                </li>
-              </ul>
+              <ol class="mb-3">
+                <li class="mb-2">設定タブの「カスタムショートカットを設定」ボタンをクリック</li>
+                <li class="mb-2"><code>chrome://extensions/shortcuts</code> が開きます</li>
+                <li class="mb-2">好きなキーの組み合わせに変更できます</li>
+              </ol>
 
               <p class="mb-1 fw-bold">
-                設定
+                サイトごとの有効/無効設定
               </p>
-              <ul>
-                <li>
-                  設定をここに書く
-                </li>
-              </ul>
-
-              <p class="mb-1 fw-bold">
-                操作方法
-              </p>
-              <ul>
-                <li>操作方法をここに書く</li>
+              <ul class="m-1 mb-3">
+                <li class="mb-2">設定タブの「対応サイトごとの有効/無効」セクションで各サイトをON/OFF可能</li>
+                <li class="mb-2">サイトリンクをクリックすると該当サイトを新しいタブで開けます</li>
               </ul>
             </div>
           </div>
@@ -284,10 +237,40 @@
       aria-labelledby="version-tab">
       <ul class="list-group list-group-flush">
         <h5 class="pt-3 ps-2 mb-2">更新履歴</h5>
+
         <li class="list-group-item">
-          <strong>v1.0.0</strong>
+          <strong>v0.4.0</strong>
+          <span class="badge bg-primary">最新</span>
+          <ul class="small mt-1">
+            <li>トースト通知機能を追加（履歴ナビゲーション時に現在位置を表示）</li>
+            <li>サイトごとの機能ON/OFF設定を追加</li>
+            <li>ChatGPTリロード時のキーイベント不具合を修正</li>
+          </ul>
+        </li>
+
+        <li class="list-group-item">
+          <strong>v0.3.0</strong>
+          <ul class="small mt-1">
+            <li>ショートカットキーのカスタマイズに対応</li>
+            <li>Notion AI対応を追加</li>
+            <li>ポップアップUIを改善</li>
+          </ul>
+        </li>
+
+        <li class="list-group-item">
+          <strong>v0.2.0</strong>
+          <ul class="small mt-1">
+            <li>マルチサイト対応（Claude, Perplexity, Copilot, Grok）</li>
+            <li>サイト自動検出機能を追加</li>
+          </ul>
+        </li>
+
+        <li class="list-group-item">
+          <strong>v0.1.0</strong>
           <ul class="small mt-1">
             <li>初回リリース</li>
+            <li>ChatGPT対応</li>
+            <li>基本的な履歴ナビゲーション機能</li>
           </ul>
         </li>
       </ul>
