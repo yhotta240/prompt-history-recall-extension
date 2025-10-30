@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Prompt History Recall - プロンプト履歴呼び戻し",
   "short_name": "Prompt History Recall",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "AIチャット内で過去のプロンプトを上矢印キーなどで呼び戻せます",
   "icons": {
     "48": "icons/icon.png"
