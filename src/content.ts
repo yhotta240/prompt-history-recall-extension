@@ -17,6 +17,7 @@ class ContentScript {
   public keyHandler: KeyHandler | null = null;
   private lastUrl: string = '';
   private settings: Settings = DEFAULT_SETTINGS;
+  private urlObserver: MutationObserver | null = null;
 
   constructor() {
     this.inputDetector = new InputDetector();
@@ -96,8 +97,19 @@ class ContentScript {
   }
 
   private setupUrlChangeDetection(): void {
-    // MutationObserverでDOM変更を監視してURL変更を検知
-    const observer = new MutationObserver(() => {
+    // 既存のオブザーバーをクリーンアップ
+    if (this.urlObserver) {
+      this.urlObserver.disconnect();
+    }
+
+    // MutationObserverでDOM変更を監視してURL変更を検知（スロットリング付き）
+    let lastCheck = Date.now();
+    this.urlObserver = new MutationObserver(() => {
+      const now = Date.now();
+      // 500ms以内の連続した変更は無視（パフォーマンス最適化）
+      if (now - lastCheck < 500) return;
+      lastCheck = now;
+
       if (window.location.href !== this.lastUrl) {
         // console.log('[Prompt History Recall] URL changed, reinitializing...');
         this.lastUrl = window.location.href;
@@ -107,7 +119,10 @@ class ContentScript {
       }
     });
 
-    observer.observe(document, { subtree: true, childList: true });
+    this.urlObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: false // パフォーマンス改善：サブツリー全体を監視しない
+    });
 
     // popstateイベントも監視（ブラウザの戻る/進む）
     window.addEventListener('popstate', () => {
@@ -151,6 +166,12 @@ class ContentScript {
   cleanup(): void {
     this.adapter?.cleanup();
     this.keyHandler?.cleanup();
+    
+    if (this.urlObserver) {
+      this.urlObserver.disconnect();
+      this.urlObserver = null;
+    }
+    
     this.adapter = null;
     this.historyManager = null;
     this.keyHandler = null;

@@ -11,6 +11,7 @@ export class KeyHandler {
   private useDefaultDownKey: boolean = true; // デフォルトの下キーを使用するか
   private toast: Toast;
   private showToastNotification: boolean = true;
+  private keydownHandler: ((e: Event) => void) | null = null;
 
   constructor(
     private adapter: ISiteAdapter,
@@ -164,5 +165,11 @@ export class KeyHandler {
   cleanup(): void {
     this.resetNavigation();
     this.toast.cleanup();
+    
+    // イベントリスナーを削除
+    if (this.keydownHandler) {
+      document.removeEventListener('keydown', this.keydownHandler, { capture: true });
+      this.keydownHandler = null;
+    }
   }
 }
