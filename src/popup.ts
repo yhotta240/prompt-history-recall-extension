@@ -6,6 +6,7 @@ import { dateTime } from './utils/date';
 import { clickURL } from './utils/dom';
 import { getSiteAccessText } from './utils/permissions';
 import meta from '../public/manifest.meta.json';
+import { SUPPORTED_SITES, DEFAULT_SETTINGS, Settings } from './settings';
 
 class PopupManager {
   private panel: PopupPanel;
@@ -30,14 +31,17 @@ class PopupManager {
         this.enabled = data.enabled || false;
         this.enabledElement.checked = this.enabled;
       }
-      this.showMessage(`${this.manifestData.short_name} が起動しました`);
 
-      // 設定値の読み込み例
-      // const settings = data.settings || {};
-      // if (settings.theme) {
-      //   const themeSelect = document.getElementById('theme-select') as HTMLSelectElement;
-      //   if (themeSelect) themeSelect.value = settings.theme;
-      // }
+      // 設定値を読み込み、サイトトグルを初期化
+      const settings: Settings = data.settings || DEFAULT_SETTINGS;
+      if (!settings.enabledSites) {
+        settings.enabledSites = DEFAULT_SETTINGS.enabledSites;
+      }
+
+      // サイトトグルUIを作成
+      this.createSiteToggles(settings.enabledSites || {});
+
+      this.showMessage(`${this.manifestData.short_name} が起動しました`);
     });
   }
 
@@ -188,6 +192,119 @@ class PopupManager {
     const githubLink = document.getElementById('github-link') as HTMLAnchorElement;
     githubLink.href = this.manifestMetadata.github_url;
     githubLink.textContent = this.manifestMetadata.github_url;
+  }
+
+  /**
+   * サイトごとのON/OFFトグルを作成
+   */
+  private createSiteToggles(enabledSites: { [domain: string]: boolean }): void {
+    const container = document.getElementById('site-toggles-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    SUPPORTED_SITES.forEach(site => {
+      const isEnabled = enabledSites[site.domain] !== false;
+      const faviconUrl = `https://www.google.com/s2/favicons?domain=${site.domain}&sz=32`;
+
+      const li = document.createElement('li');
+      li.className = 'list-group-item p-2';
+
+      li.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center flex-grow-1">
+            <img 
+              src="${faviconUrl}" 
+              alt="${site.name} icon" 
+              width="24" 
+              height="24" 
+              class="me-2"
+              style="border-radius: 4px;"
+            >
+            <div class="flex-grow-1">
+              <strong>${site.name}</strong>
+              <br>
+              <a 
+                href="${site.url}" 
+                target="_blank" 
+                class="text-muted text-decoration-none site-link" 
+                style="font-size: 0.875rem; cursor: pointer;"
+                data-url="${site.url}"
+              >
+                ${site.domain} <i class="bi bi-box-arrow-up-right" style="font-size: 0.75rem;"></i>
+              </a>
+            </div>
+          </div>
+          <div class="form-check form-switch">
+            <input 
+              class="form-check-input site-toggle" 
+              type="checkbox" 
+              role="switch" 
+              id="toggle-${site.domain}" 
+              data-domain="${site.domain}"
+              ${isEnabled ? 'checked' : ''}
+            >
+          </div>
+        </div>
+      `;
+
+      container.appendChild(li);
+
+      // イベントリスナーを追加
+      const toggle = li.querySelector('.site-toggle') as HTMLInputElement;
+      toggle.addEventListener('change', (event) => {
+        const domain = (event.target as HTMLInputElement).dataset.domain;
+        const checked = (event.target as HTMLInputElement).checked;
+        if (domain) {
+          this.toggleSite(domain, checked);
+        }
+      });
+
+      // サイトリンクのイベントリスナーを追加
+      const siteLink = li.querySelector('.site-link') as HTMLAnchorElement;
+      if (siteLink) {
+        siteLink.addEventListener('click', (event) => {
+          event.preventDefault();
+          const url = (event.currentTarget as HTMLAnchorElement).dataset.url;
+          if (url) {
+            chrome.tabs.create({ url });
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * サイトの有効/無効を切り替え
+   */
+  private toggleSite(domain: string, enabled: boolean): void {
+    chrome.storage.local.get(['settings'], (data) => {
+      const settings: Settings = data.settings || DEFAULT_SETTINGS;
+      if (!settings.enabledSites) {
+        settings.enabledSites = {};
+      }
+
+      settings.enabledSites[domain] = enabled;
+
+      chrome.storage.local.set({ settings }, () => {
+        const siteName = SUPPORTED_SITES.find(s => s.domain === domain)?.name || domain;
+        this.showMessage(`${siteName} を${enabled ? '有効' : '無効'}にしました`);
+
+        // 全てのタブのContent Scriptに変更を通知（各Content Scriptが自分のドメインか判定する）
+        chrome.tabs.query({}, (tabs) => {
+          tabs.forEach(tab => {
+            if (tab.id) {
+              chrome.tabs.sendMessage(tab.id, {
+                type: 'SETTINGS_UPDATED',
+                settings
+              }).catch(() => {
+                // Content Scriptが読み込まれていないタブは無視
+              });
+            }
+          });
+        });
+      });
+    });
   }
 
   /**

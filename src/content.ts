@@ -8,6 +8,7 @@ import { PerplexityAdapter } from './content/siteAdapters/perplexity';
 import { CopilotAdapter } from './content/siteAdapters/copilot';
 import { GrokAdapter } from './content/siteAdapters/grok';
 import { NotionAIAdapter } from './content/siteAdapters/notionai';
+import { Settings, DEFAULT_SETTINGS } from './settings';
 
 class ContentScript {
   private adapter: ISiteAdapter | null = null;
@@ -15,6 +16,7 @@ class ContentScript {
   private inputDetector: InputDetector;
   public keyHandler: KeyHandler | null = null;
   private lastUrl: string = '';
+  private settings: Settings = DEFAULT_SETTINGS;
 
   constructor() {
     this.inputDetector = new InputDetector();
@@ -22,7 +24,18 @@ class ContentScript {
   }
 
   async initialize(): Promise<void> {
-    const domain = window.location.hostname;
+    // 設定を読み込み
+    await this.loadSettings();
+
+    const domain = this.getCurrentDomain();
+
+    // サイトが無効化されている場合は、既存の機能をクリーンアップして終了
+    if (!this.isSiteEnabled(domain)) {
+      // console.log('[Prompt History Recall] Site is disabled:', domain);
+      this.cleanup();
+      return;
+    }
+
     // console.log('[Prompt History Recall] Initializing on', domain);
 
     // サイトに応じたアダプターを選択
@@ -52,6 +65,34 @@ class ContentScript {
     this.setupUrlChangeDetection();
 
     // console.log('[Prompt History Recall] Initialization complete');
+  }
+
+  private async loadSettings(): Promise<void> {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['settings'], (data) => {
+        this.settings = data.settings || DEFAULT_SETTINGS;
+        if (!this.settings.enabledSites) {
+          this.settings.enabledSites = DEFAULT_SETTINGS.enabledSites;
+        }
+        resolve();
+      });
+    });
+  }
+
+  private getCurrentDomain(): string {
+    const hostname = window.location.hostname;
+    // ChatGPTの複数ドメインを統一
+    if (hostname.includes('openai.com') || hostname.includes('chatgpt.com')) {
+      return 'chatgpt.com';
+    }
+    return hostname;
+  }
+
+  private isSiteEnabled(domain: string): boolean {
+    if (!this.settings.enabledSites) {
+      return true;
+    }
+    return this.settings.enabledSites[domain] !== false;
   }
 
   private setupUrlChangeDetection(): void {
@@ -110,6 +151,9 @@ class ContentScript {
   cleanup(): void {
     this.adapter?.cleanup();
     this.keyHandler?.cleanup();
+    this.adapter = null;
+    this.historyManager = null;
+    this.keyHandler = null;
   }
 }
 
@@ -128,5 +172,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.command === 'navigate-history-down') {
       contentScript.keyHandler.navigateDown();
     }
+  } else if (message.type === 'SETTINGS_UPDATED') {
+    // 設定が更新されたら、クリーンアップして再初期化
+    // console.log('[Prompt History Recall] Settings updated, reinitializing...');
+    contentScript.cleanup();
+    setTimeout(() => contentScript.initialize(), 100);
   }
 });

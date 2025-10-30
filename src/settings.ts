@@ -1,58 +1,36 @@
 /**
- * 拡張機能の設定定義
- * ここにデフォルト値と型を定義することで，設定を一元管理できます
- */
-
-/**
  * 設定の型定義
  * 実際のアプリケーションで使用する設定項目をここに追加してください
  */
 export interface Settings {
-  // ========== サンプル設定項目 ==========
-  // 以下はサンプルです．実際の設定項目に置き換えてください
-
-  // theme?: 'light' | 'dark' | 'system';
-  // fontSize?: number;
-  // notifications?: boolean;
-  // apiKey?: string;
-  // displayMode?: 'compact' | 'standard';
-  // language?: 'ja' | 'en';
-
-  // ========== 追加例 ==========
-  // autoSave?: boolean;
-  // refreshInterval?: number;
-  // maxItems?: number;
+  enabledSites?: {
+    [domain: string]: boolean;
+  };
 }
+
+/** 対応サイトのリスト */
+export interface SiteInfo {
+  domain: string;
+  name: string;
+  url: string;
+}
+
+export const SUPPORTED_SITES: SiteInfo[] = [
+  { domain: 'chatgpt.com', name: 'ChatGPT', url: 'https://chatgpt.com' },
+  { domain: 'claude.ai', name: 'Claude', url: 'https://claude.ai' },
+  { domain: 'perplexity.ai', name: 'Perplexity', url: 'https://perplexity.ai' },
+  { domain: 'copilot.microsoft.com', name: 'Microsoft Copilot', url: 'https://copilot.microsoft.com' },
+  { domain: 'x.com', name: 'Grok', url: 'https://x.com/i/grok' },
+  { domain: 'notion.so', name: 'Notion AI', url: 'https://www.notion.so/ai' },
+];
 
 /**
  * 設定のデフォルト値
  * 初回起動時や設定がリセットされた時に使用されます
  */
 export const DEFAULT_SETTINGS: Settings = {
-  // ========== サンプルのデフォルト値 ==========
-  // 以下はサンプルです．実際の設定項目に置き換えてください
-
-  // theme: 'system',
-  // fontSize: 16,
-  // notifications: true,
-  // apiKey: '',
-  // displayMode: 'standard',
-  // language: 'ja',
-};
-
-/**
- * 設定の説明やバリデーションルール
- * オプション：設定値の制約を定義できます
- */
-export const SETTINGS_CONFIG = {
-  // ========== サンプルの設定制約 ==========
-  // fontSize: {
-  //   min: 12,
-  //   max: 24,
-  //   step: 1,
-  // },
-  // maxItems: {
-  //   min: 1,
-  //   max: 100,
-  // },
+  enabledSites: SUPPORTED_SITES.reduce((acc, site) => {
+    acc[site.domain] = true;
+    return acc;
+  }, {} as { [domain: string]: boolean }),
 };
