@@ -35,11 +35,15 @@ export class KeyHandler {
   }
 
   private setupKeyListener(): void {
-    const input = this.adapter.getInputElement();
-    if (!input) return;
-
-    input.addEventListener('keydown', (e: Event) => {
+    // documentレベルでキーイベントをキャプチャ
+    document.addEventListener('keydown', (e: Event) => {
       const keyEvent = e as KeyboardEvent;
+
+      // 入力要素がフォーカスされているかチェック
+      const input = this.adapter.getInputElement();
+      if (!input || document.activeElement !== input) {
+        return;
+      }
 
       // Alt+上矢印キー（デフォルトキーが有効な場合のみ）
       if (keyEvent.key === 'ArrowUp' && keyEvent.altKey && this.useDefaultUpKey) {
@@ -56,11 +60,6 @@ export class KeyHandler {
       if (!keyEvent.ctrlKey && !keyEvent.altKey && !keyEvent.metaKey) {
         this.resetNavigation();
       }
-    });
-
-    // 入力フィールドがフォーカスを失ったらリセット
-    input.addEventListener('blur', () => {
-      this.resetNavigation();
     });
   }
 
