@@ -28,13 +28,21 @@ export class KeyHandler {
   }
 
   private async loadSettings(): Promise<void> {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(['settings'], (data) => {
-        if (data.settings) {
-          this.showToastNotification = data.settings.showToastNotification !== false;
-        }
-        resolve();
-      });
+    return new Promise((resolve, reject) => {
+      try {
+        chrome.storage.local.get(['settings'], (data) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+            return;
+          }
+          if (data.settings) {
+            this.showToastNotification = data.settings.showToastNotification !== false;
+          }
+          resolve();
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 
@@ -45,40 +53,54 @@ export class KeyHandler {
       this.useDefaultUpKey = response.useDefaultUpKey;
       this.useDefaultDownKey = response.useDefaultDownKey;
     } catch (error) {
-      console.error('Failed to check commands config:', error);
-      // エラー時はデフォルトキーを有効にする
+      console.log('[Prompt History Recall] Commands config check error:', error);
       this.useDefaultUpKey = true;
       this.useDefaultDownKey = true;
     }
   }
 
   private setupKeyListener(): void {
-    // documentレベルでキーイベントをキャプチャ
-    document.addEventListener('keydown', (e: Event) => {
-      const keyEvent = e as KeyboardEvent;
-
-      // 入力要素がフォーカスされているかチェック
-      const input = this.adapter.getInputElement();
-      if (!input || document.activeElement !== input) {
-        return;
+    try {
+      // 既存のリスナーを削除（重複登録防止）
+      if (this.keydownHandler) {
+        document.removeEventListener('keydown', this.keydownHandler, { capture: true });
       }
 
-      // Alt+上矢印キー（デフォルトキーが有効な場合のみ）
-      if (keyEvent.key === 'ArrowUp' && keyEvent.altKey && this.useDefaultUpKey) {
-        this.handleArrowUp(keyEvent);
-        return;
-      }
-      // Alt+下矢印キー（デフォルトキーが有効な場合のみ）
-      else if (keyEvent.key === 'ArrowDown' && keyEvent.altKey && this.useDefaultDownKey) {
-        this.handleArrowDown(keyEvent);
-        return;
-      }
+      // documentレベルでキーイベントをキャプチャ
+      this.keydownHandler = (e: Event) => {
+        try {
+          const keyEvent = e as KeyboardEvent;
 
-      // 修飾キーなしの通常のキー入力の場合，ナビゲーション終了
-      if (!keyEvent.ctrlKey && !keyEvent.altKey && !keyEvent.metaKey) {
-        this.resetNavigation();
-      }
-    });
+          // 入力要素がフォーカスされているかチェック
+          const input = this.adapter.getInputElement();
+          if (!input || document.activeElement !== input) {
+            return;
+          }
+
+          // Alt+上矢印キー（デフォルトキーが有効な場合のみ）
+          if (keyEvent.key === 'ArrowUp' && keyEvent.altKey && this.useDefaultUpKey) {
+            this.handleArrowUp(keyEvent);
+            return;
+          }
+          // Alt+下矢印キー（デフォルトキーが有効な場合のみ）
+          else if (keyEvent.key === 'ArrowDown' && keyEvent.altKey && this.useDefaultDownKey) {
+            this.handleArrowDown(keyEvent);
+            return;
+          }
+
+          // 修飾キーなしの通常のキー入力の場合，ナビゲーション終了
+          if (!keyEvent.ctrlKey && !keyEvent.altKey && !keyEvent.metaKey) {
+            this.resetNavigation();
+          }
+        } catch (error) {
+          console.log('[Prompt History Recall] Key handler error:', error);
+        }
+      };
+
+      document.addEventListener('keydown', this.keydownHandler, { capture: true });
+    } catch (error) {
+      console.log('[Prompt History Recall] Key listener setup error:', error);
+    }
   }
 
   private handleArrowUp(event?: KeyboardEvent): void {

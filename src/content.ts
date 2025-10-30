@@ -25,58 +25,62 @@ class ContentScript {
   }
 
   async initialize(): Promise<void> {
-    // 設定を読み込み
-    await this.loadSettings();
+    try {
+      // 設定を読み込み
+      await this.loadSettings();
 
-    const domain = this.getCurrentDomain();
+      const domain = this.getCurrentDomain();
 
-    // サイトが無効化されている場合は，既存の機能をクリーンアップして終了
-    if (!this.isSiteEnabled(domain)) {
-      // console.log('[Prompt History Recall] Site is disabled:', domain);
+      // サイトが無効化されている場合は，既存の機能をクリーンアップして終了
+      if (!this.isSiteEnabled(domain)) {
+        this.cleanup();
+        return;
+      }
+
+      // サイトに応じたアダプターを選択
+      this.adapter = this.getSiteAdapter();
+      if (!this.adapter) {
+        return;
+      }
+
+      // HistoryManagerを初期化（アダプターが必要）
+      this.historyManager = new HistoryManager(this.adapter);
+
+      // 入力フィールドの検出を待機
+      const inputElement = await this.inputDetector.detectInputElement(this.adapter);
+      if (!inputElement) {
+        return;
+      }
+
+      // キーハンドラーの初期化
+      this.keyHandler = new KeyHandler(this.adapter, this.historyManager);
+      await this.keyHandler.initialize();
+
+      // ページ遷移（URL変更）を検知
+      this.setupUrlChangeDetection();
+    } catch (error) {
+      console.log('[Prompt History Recall] Initialization error:', error);
       this.cleanup();
-      return;
     }
-
-    // console.log('[Prompt History Recall] Initializing on', domain);
-
-    // サイトに応じたアダプターを選択
-    this.adapter = this.getSiteAdapter();
-    if (!this.adapter) {
-      // console.log('[Prompt History Recall] No adapter found for this site');
-      return;
-    }
-
-    // HistoryManagerを初期化（アダプターが必要）
-    this.historyManager = new HistoryManager(this.adapter);
-
-    // 入力フィールドの検出を待機
-    const inputElement = await this.inputDetector.detectInputElement(this.adapter);
-    if (!inputElement) {
-      // console.log('[Prompt History Recall] Input element not found');
-      return;
-    }
-
-    // console.log('[Prompt History Recall] Input element detected');
-
-    // キーハンドラーの初期化
-    this.keyHandler = new KeyHandler(this.adapter, this.historyManager);
-    this.keyHandler.initialize();
-
-    // ページ遷移（URL変更）を検知
-    this.setupUrlChangeDetection();
-
-    // console.log('[Prompt History Recall] Initialization complete');
   }
 
   private async loadSettings(): Promise<void> {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(['settings'], (data) => {
-        this.settings = data.settings || DEFAULT_SETTINGS;
-        if (!this.settings.enabledSites) {
-          this.settings.enabledSites = DEFAULT_SETTINGS.enabledSites;
-        }
-        resolve();
-      });
+    return new Promise((resolve, reject) => {
+      try {
+        chrome.storage.local.get(['settings'], (data) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+            return;
+          }
+          this.settings = data.settings || DEFAULT_SETTINGS;
+          if (!this.settings.enabledSites) {
+            this.settings.enabledSites = DEFAULT_SETTINGS.enabledSites;
+          }
+          resolve();
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 
@@ -97,39 +101,41 @@ class ContentScript {
   }
 
   private setupUrlChangeDetection(): void {
-    // 既存のオブザーバーをクリーンアップ
-    if (this.urlObserver) {
-      this.urlObserver.disconnect();
-    }
+    try {
+      // 既存のオブザーバーをクリーンアップ
+      if (this.urlObserver) {
+        this.urlObserver.disconnect();
+      }
 
-    // MutationObserverでDOM変更を監視してURL変更を検知（スロットリング付き）
-    let lastCheck = Date.now();
-    this.urlObserver = new MutationObserver(() => {
-      const now = Date.now();
-      // 500ms以内の連続した変更は無視（パフォーマンス最適化）
-      if (now - lastCheck < 500) return;
-      lastCheck = now;
+      // MutationObserverでDOM変更を監視してURL変更を検知（スロットリング付き）
+      let lastCheck = Date.now();
+      this.urlObserver = new MutationObserver(() => {
+        const now = Date.now();
+        // 500ms以内の連続した変更は無視（パフォーマンス最適化）
+        if (now - lastCheck < 500) return;
+        lastCheck = now;
 
-      if (window.location.href !== this.lastUrl) {
-        // console.log('[Prompt History Recall] URL changed, reinitializing...');
-        this.lastUrl = window.location.href;
-        // URL変更時に再初期化
+        if (window.location.href !== this.lastUrl) {
+          this.lastUrl = window.location.href;
+          // URL変更時に再初期化
+          this.cleanup();
+          setTimeout(() => this.initialize(), 500);
+        }
+      });
+
+      this.urlObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: false // パフォーマンス改善：サブツリー全体を監視しない
+      });
+
+      // popstateイベントも監視（ブラウザの戻る/進む）
+      window.addEventListener('popstate', () => {
         this.cleanup();
         setTimeout(() => this.initialize(), 500);
-      }
-    });
-
-    this.urlObserver.observe(document.documentElement, {
-      childList: true,
-      subtree: false // パフォーマンス改善：サブツリー全体を監視しない
-    });
-
-    // popstateイベントも監視（ブラウザの戻る/進む）
-    window.addEventListener('popstate', () => {
-      // console.log('[Prompt History Recall] Pop state event, reinitializing...');
-      this.cleanup();
-      setTimeout(() => this.initialize(), 500);
-    });
+      });
+    } catch (error) {
+      console.log('[Prompt History Recall] URL observer setup error:', error);
+    }
   }
 
   private getSiteAdapter(): ISiteAdapter | null {
@@ -166,12 +172,12 @@ class ContentScript {
   cleanup(): void {
     this.adapter?.cleanup();
     this.keyHandler?.cleanup();
-    
+
     if (this.urlObserver) {
       this.urlObserver.disconnect();
       this.urlObserver = null;
     }
-    
+
     this.adapter = null;
     this.historyManager = null;
     this.keyHandler = null;
