@@ -88,7 +88,7 @@ class PopupManager {
           settings.showToastNotification = checked;
           chrome.storage.local.set({ settings }, () => {
             this.showMessage(`トースト通知を${checked ? '有効' : '無効'}にしました`);
-            
+
             // 全てのタブのContent Scriptに変更を通知
             chrome.tabs.query({}, (tabs) => {
               tabs.forEach(tab => {
@@ -96,7 +96,7 @@ class PopupManager {
                   chrome.tabs.sendMessage(tab.id, {
                     type: 'SETTINGS_UPDATED',
                     settings
-                  }).catch(() => {});
+                  }).catch(() => { });
                 }
               });
             });
@@ -104,35 +104,6 @@ class PopupManager {
         });
       });
     }
-
-    // 設定項目のイベントリスナー例
-    //
-    // セレクトボックスの例:
-    // const themeSelect = document.getElementById('theme-select') as HTMLSelectElement;
-    // if (themeSelect) {
-    //   themeSelect.addEventListener('change', (event) => {
-    //     const value = (event.target as HTMLSelectElement).value;
-    //     this.saveSetting('theme', value, `テーマを「${value}」に変更しました`);
-    //   });
-    // }
-    //
-    // チェックボックスの例:
-    // const notificationToggle = document.getElementById('enable-notifications') as HTMLInputElement;
-    // if (notificationToggle) {
-    //   notificationToggle.addEventListener('change', (event) => {
-    //     const checked = (event.target as HTMLInputElement).checked;
-    //     this.saveSetting('notifications', checked, `通知を${checked ? '有効' : '無効'}にしました`);
-    //   });
-    // }
-    //
-    // スライダーの例:
-    // const fontSizeRange = document.getElementById('font-size') as HTMLInputElement;
-    // if (fontSizeRange) {
-    //   fontSizeRange.addEventListener('change', (event) => {
-    //     const value = (event.target as HTMLInputElement).value;
-    //     this.saveSetting('fontSize', value, `フォントサイズを${value}pxに変更しました`);
-    //   });
-    // }
   }
 
   private initializeUI(): void {
@@ -161,6 +132,12 @@ class PopupManager {
   }
 
   private setupInfoTab(): void {
+    const storeLink = document.getElementById('store_link') as HTMLAnchorElement;
+    if (storeLink) {
+      storeLink.href = `https://chrome.google.com/webstore/detail/${chrome.runtime.id}`;
+      clickURL(storeLink);
+    }
+
     const extensionLink = document.getElementById('extension_link') as HTMLAnchorElement;
     if (extensionLink) {
       extensionLink.href = `chrome://extensions/?id=${chrome.runtime.id}`;
@@ -168,7 +145,6 @@ class PopupManager {
     }
 
     clickURL(document.getElementById('issue-link'));
-    clickURL(document.getElementById('store_link'));
     clickURL(document.getElementById('github-link'));
 
     const extensionId = document.getElementById('extension-id');
