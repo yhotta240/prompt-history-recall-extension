@@ -26,6 +26,13 @@ class ContentScript {
 
   async initialize(): Promise<void> {
     try {
+      // 拡張機能の有効状態を確認
+      const isExtensionEnabled = await this.checkExtensionEnabled();
+      if (!isExtensionEnabled) {
+        this.cleanup();
+        return;
+      }
+
       // 設定を読み込み
       await this.loadSettings();
 
@@ -62,6 +69,14 @@ class ContentScript {
       console.log('[Prompt History Recall] Initialization error:', error);
       this.cleanup();
     }
+  }
+
+  private async checkExtensionEnabled(): Promise<boolean> {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['enabled'], (data) => {
+        resolve(data.enabled !== false);
+      });
+    });
   }
 
   private async loadSettings(): Promise<void> {
@@ -205,6 +220,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       contentScript.keyHandler.updateSettings(message.settings);
     }
     // サイトの有効/無効が変わった場合は再初期化
+    contentScript.cleanup();
+    setTimeout(() => contentScript.initialize(), 100);
+  } else if (message.type === 'EXTENSION_ENABLED_CHANGED') {
+    // 拡張機能の有効/無効が変わった場合は再初期化
     contentScript.cleanup();
     setTimeout(() => contentScript.initialize(), 100);
   }

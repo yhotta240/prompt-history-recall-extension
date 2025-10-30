@@ -10,7 +10,7 @@ import { SUPPORTED_SITES, DEFAULT_SETTINGS, Settings } from './settings';
 
 class PopupManager {
   private panel: PopupPanel;
-  private enabled: boolean = false;
+  private enabled: boolean = true;
   private enabledElement: HTMLInputElement | null;
   private manifestData: chrome.runtime.Manifest;
   private manifestMetadata: { [key: string]: any } = (meta as any) || {};
@@ -28,7 +28,7 @@ class PopupManager {
   private loadInitialState(): void {
     chrome.storage.local.get(['settings', 'enabled'], (data) => {
       if (this.enabledElement) {
-        this.enabled = data.enabled || false;
+        this.enabled = data.enabled || true;
         this.enabledElement.checked = this.enabled;
       }
 

@@ -1,14 +1,21 @@
 // Commands APIのイベントリスナー
 chrome.commands.onCommand.addListener((command) => {
-  // アクティブなタブを取得
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]?.id) {
-      // Content scriptにメッセージを送信
-      chrome.tabs.sendMessage(tabs[0].id, {
-        type: 'COMMAND',
-        command: command
-      });
+  // 拡張機能が有効かチェック
+  chrome.storage.local.get(['enabled'], (data) => {
+    if (data.enabled === false) {
+      return;
     }
+
+    // アクティブなタブを取得
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        // Content scriptにメッセージを送信
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: 'COMMAND',
+          command: command
+        });
+      }
+    });
   });
 });
 
