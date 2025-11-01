@@ -28,7 +28,7 @@ class PopupManager {
   private loadInitialState(): void {
     chrome.storage.local.get(['settings', 'enabled'], (data) => {
       if (this.enabledElement) {
-        this.enabled = data.enabled || true;
+        this.enabled = data.enabled ?? true;
         this.enabledElement.checked = this.enabled;
       }
 
@@ -47,7 +47,7 @@ class PopupManager {
       // サイトトグルUIを作成
       this.createSiteToggles(settings.enabledSites || {});
 
-      this.showMessage(`${this.manifestData.short_name} が起動しました`);
+      this.showMessage(`${this.manifestData.short_name} は${this.enabled ? '有効' : '無効'}になっています`);
     });
   }
 
@@ -56,7 +56,7 @@ class PopupManager {
       this.enabledElement.addEventListener('change', (event) => {
         this.enabled = (event.target as HTMLInputElement).checked;
         chrome.storage.local.set({ enabled: this.enabled }, () => {
-          this.showMessage(this.enabled ? `${this.manifestData.short_name} は有効になっています` : `${this.manifestData.short_name} は無効になっています`);
+          this.showMessage(`${this.manifestData.short_name} は${this.enabled ? '有効' : '無効'}になりました`);
         });
       });
     }
