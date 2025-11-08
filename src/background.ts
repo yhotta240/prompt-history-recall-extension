@@ -1,3 +1,10 @@
+import { reloadExtension } from "./dev/reload";
+import { getContentScriptsMatches } from "./utils/manifest";
+import { reloadTargetTabs } from "./utils/reload-tabs";
+
+// リロード対象のURLパターンを取得
+const targetUrls = getContentScriptsMatches();
+
 // Commands APIのイベントリスナー
 chrome.commands.onCommand.addListener((command) => {
   // 拡張機能が有効かチェック
@@ -39,3 +46,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return false;
 });
+
+/**
+ * バックグラウンドスクリプトを初期化
+ */
+function initialize(): void {
+  console.log("現在の環境：", process.env.NODE_ENV);
+  // 開発用ホットリロード機能を初期化
+  if (process.env.NODE_ENV === "development") {
+    reloadExtension();
+  }
+  // 拡張機能起動時にターゲットタブをリロード
+  reloadTargetTabs(targetUrls);
+}
+
+initialize();

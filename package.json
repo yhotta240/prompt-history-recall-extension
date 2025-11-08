@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
-    "watch": "webpack --watch",
-    "publish": "npx ts-node scripts/publish.mts"
+    "build": "cross-env NODE_ENV=production webpack",
+    "watch": "cross-env NODE_ENV=development webpack --watch",
+    "publish": "npm run build && npx ts-node scripts/publish.mts"
   },
   "keywords": [],
   "author": "yhotta240",
@@ -15,10 +15,12 @@
   "devDependencies": {
     "@types/chrome": "^0.1.6",
     "copy-webpack-plugin": "^13.0.1",
+    "cross-env": "^10.1.0",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.2",
     "webpack": "^5.101.3",
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1",
+    "ws": "^8.18.3"
   },
   "dependencies": {
     "@types/archiver": "^7.0.0",

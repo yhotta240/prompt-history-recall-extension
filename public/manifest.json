@@ -7,7 +7,7 @@
   "icons": {
     "48": "icons/icon.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs"],
   "action": {
     "default_popup": "popup.html"
   },
@@ -17,7 +17,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*/*", "http://*/*"],
+      "matches": ["https://chatgpt.com/*", "https://claude.ai/*", "https://perplexity.ai/*", "https://copilot.microsoft.com/*", "https://x.com/i/grok", "https://www.notion.so/*"],
       "js": ["content.js"]
     }
   ],
