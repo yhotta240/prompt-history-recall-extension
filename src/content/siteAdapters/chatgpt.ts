@@ -48,9 +48,8 @@ export class ChatGPTAdapter extends BaseSiteAdapter {
 
     const userMessages = articles
       .filter(article => {
-        // h5見出しが「あなた:」のarticleのみ
-        const heading = article.querySelector('h5');
-        return heading && heading.textContent?.includes('あなた');
+        const userTurn: boolean = article.dataset.turn === 'user' || false;
+        return userTurn;
       })
       .map(article => {
         // whitespace-pre-wrapクラスのdivから直接テキストを取得
