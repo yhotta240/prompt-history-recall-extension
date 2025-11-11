@@ -172,7 +172,7 @@ class ContentScript {
       return new CopilotAdapter();
     }
 
-    if (hostname.includes('x.com') && window.location.pathname.includes('/grok')) {
+    if (hostname.includes('grok.com')) {
       return new GrokAdapter();
     }
 

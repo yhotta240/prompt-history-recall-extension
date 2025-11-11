@@ -21,7 +21,7 @@ export const SUPPORTED_SITES: SiteInfo[] = [
   { domain: 'claude.ai', name: 'Claude', url: 'https://claude.ai' },
   { domain: 'perplexity.ai', name: 'Perplexity', url: 'https://perplexity.ai' },
   { domain: 'copilot.microsoft.com', name: 'Microsoft Copilot', url: 'https://copilot.microsoft.com' },
-  { domain: 'x.com', name: 'Grok', url: 'https://x.com/i/grok' },
+  { domain: 'grok.com', name: 'Grok', url: 'https://grok.com' },
   { domain: 'notion.so', name: 'Notion AI', url: 'https://www.notion.so/ai' },
 ];
 
